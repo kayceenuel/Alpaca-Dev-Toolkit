@@ -1,18 +1,20 @@
 package main
 
 import (
-	"log"
-	"os"
+	"fmt"
 
-	"github.com/joho/godotenv"
+	"github.com/alpacahq/alpaca-trade-api-go/v3/alpaca"
 )
 
 func main() {
-	err := godotenv.Load()
+	client := alpaca.NewClient(alpaca.ClientOpts{
+		APIKey:    "APCA-API-KEY-ID",
+		APISecret: "APCA-API-SECRET-KEY",
+		BaseURL:   "https://paper-api.alpaca.markets",
+	})
+	acct, err := client.GetAccount()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		panic(err)
 	}
-
-	alpacaAPI_Key := os.Getenv("APCA-API-KEY-ID")
-	alpacaSecret_Key := os.Getenv("APCA-API-SECRET-KEY")
+	fmt.Printf("%+v\n", *acct)
 }
