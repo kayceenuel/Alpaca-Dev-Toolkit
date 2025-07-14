@@ -14,7 +14,7 @@ func main() {
 	// load evn file
 	err := godotenv.Load()
 	if err != nil {
-		fmt.Printf("Error loading .env file %v, err")
+		log.Fatal("Error loading .env file")
 	}
 
 	API_Key := os.Getenv("APCA-API-KEY-ID")
