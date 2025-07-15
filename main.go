@@ -21,13 +21,23 @@ func main() {
 	API_Secret := os.Getenv("APCA_API_SECRET_KEY")
 
 	if API_Key == "" || API_Secret == "" {
-		log.Fatal("Not set in the enviroment variables")
+		log.Fatal("API credentials not set in the enviroment variables")
 	}
 
 	client := &http.Client{}
 
+	// create request authentication headers
+	req, err := http.NewRequest("Get", "https://paper-api.alpaca.markets/v2/account", nil)
+	if err != nil {
+		log.Fatalf("Error creating request: %v", err)
+	}
+
+	// Add required authentication headers
+	req.Header.Set("APCA-API-KEY-ID", API_Key)
+	req.Header.Set("APCA-API-SECRET-KEY", API_Secret)
+
 	start := time.Now()
-	resp, err := client.Get("https://paper-api.alpaca.markets/v2/account")
+	resp, err := client.Do(req)
 	duration :=
 		time.Since(start).Milliseconds()
 
@@ -37,5 +47,5 @@ func main() {
 	}
 	defer resp.Body.Close()
 
-	fmt.Printf("Response time: %v, Status: %d\n", duration, resp.StatusCode)
+	fmt.Printf("Response time: %vms, Status: %d\n", duration, resp.StatusCode)
 }
