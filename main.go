@@ -14,11 +14,11 @@ func main() {
 	// load evn file
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Fatalf("Error loading .env file: %v", err)
 	}
 
-	API_Key := os.Getenv("APCA-API-KEY-ID")
-	API_Secret := os.Getenv("APCA_API_SECRET-KEY")
+	API_Key := os.Getenv("APCA_API_KEY_ID")
+	API_Secret := os.Getenv("APCA_API_SECRET_KEY")
 
 	if API_Key == "" || API_Secret == "" {
 		log.Fatal("Not set in the enviroment variables")
