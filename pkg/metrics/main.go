@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -10,23 +11,26 @@ import (
 func recordMetrics() {
 	go func() {
 		for {
-			requestCounter := prometheus.NewCounter(
-				prometheus.CounterOpts{
-					Name: "http_requests_total",
-					Help: "Total number of HTTP requests",
-				},
-			)
+			requestDurationHistogram.Observe(duration)
+			errorCounter.Inc() // only if an error happened
 
-			// Create a Histogram metric
-			requestDurationHistogram := prometheus.NewHistogram(
-				prometheus.HistogramOpts{
-					Name: "http_requests_duration_seconds",
-					Help: "Histrogram of response time for HTTP requests",
-				},
-			)
 		}
 	}()
 }
+
+// Create a counter metrics
+var (
+	errorCounter = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "http_requests_total",
+		Help: "Total number of HTTP requests",
+	}), 
+
+	requestDurationHistogram = prometheus.NewHistogram(prometheus.HistogramOpts{
+		Name: "http_request_duration_seconds", 
+		Help: "Histogram of response time for HTTP requests", 
+		Buckets: prometheus.DefBuckets, // Default buckets: [0.005, 0.01, 0.025, ..., 10.0]
+	})
+)
 
 func main() {
 	recordMetrics()
