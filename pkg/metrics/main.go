@@ -42,6 +42,6 @@ func main() {
 
 	recordMetrics()
 
-	http.Handle("/main", promhttp.Handler())
+	http.Handle("/metrics", promhttp.Handler())
 	http.ListenAndServe(":2112", nil)
 }
