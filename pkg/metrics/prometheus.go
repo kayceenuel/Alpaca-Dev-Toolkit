@@ -23,10 +23,19 @@ func NewCollector() *Collector {
 			},
 			[]string{"endpoint", "status_code"},
 		),
+
+		RequestsTotal: prometheus.NewCounterVec(
+			prometheus.CounterOpts{
+				Name:"alpaca_api_requests_total",
+				Help: "Total number of Alpaca API requests",
+			}, 
+			[]string{"endpoint", "status_code"}, 
+		),
+
 	}
 }
 
-func main() {
+func (c *Collector) {
 
 	NewCollector()
 
