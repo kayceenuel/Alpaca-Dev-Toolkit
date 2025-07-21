@@ -1,10 +1,7 @@
 package metrics
 
 import (
-	"net/http"
-
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 type Collector struct {
@@ -26,19 +23,30 @@ func NewCollector() *Collector {
 
 		RequestsTotal: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
-				Name:"alpaca_api_requests_total",
+				Name: "alpaca_api_requests_total",
 				Help: "Total number of Alpaca API requests",
-			}, 
-			[]string{"endpoint", "status_code"}, 
+			},
+			[]string{"endpoint", "status_code"},
 		),
 
+		ErrorsTotal: prometheus.NewCounterVec(
+			prometheus.CounterOpts{
+				Name: "alpaca_api_errors_total",
+				Help: "Total number of Alpaca API errors",
+			},
+			[]string{"endpoint", "error_type"},
+		),
 	}
+
+	// Register metrics
+	prometheus.MustRegister(collector.RequestDuration)
+	prometheus.MustRegister(collector.RequestsTotal)
+	prometheus.MustRegister(collector.ErrorsTotal)
+
+	return collector
 }
 
-func (c *Collector) {
-
-	NewCollector()
-
-	http.Handle("/metrics", promhttp.Handler())
-	http.ListenAndServe(":2112", nil)
+func (c *Collector) RecordRequest(endpoint string, statusCode string, duration float64) {
+	c.RequestDuration.WithLabelValues(endpoint, statusCode).Observe(duration)
+	c.RequestsTotal.WithLabelValues(endpoint, statusCode).Inc()
 }
