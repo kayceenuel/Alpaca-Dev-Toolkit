@@ -50,3 +50,7 @@ func (c *Collector) RecordRequest(endpoint string, statusCode string, duration f
 	c.RequestDuration.WithLabelValues(endpoint, statusCode).Observe(duration)
 	c.RequestsTotal.WithLabelValues(endpoint, statusCode).Inc()
 }
+
+func (c *Collector) RecordError(endpoint string, errorType string) {
+	c.ErrorsTotal.WithLabelValues(endpoint, errorType).Inc()
+}
