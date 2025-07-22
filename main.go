@@ -1,13 +1,13 @@
 package main
 
 import (
+	"alpaca-dev-toolkit/pkg/alpaca"
 	"alpaca-dev-toolkit/pkg/metrics"
 	"log"
 	"net/http"
 	"os"
 	"time"
 
-	"github.com/alpacahq/alpaca-trade-api-go/alpaca"
 	"github.com/joho/godotenv"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
