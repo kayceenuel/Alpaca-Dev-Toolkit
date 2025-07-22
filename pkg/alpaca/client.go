@@ -69,8 +69,8 @@ func (c *Client) MakeRequest(endpoint string) error {
 	return nil
 }
 
-func (c *Client) startMonitoring(interval time.Duration) {
-	endpoint := []string{
+func (c *Client) StartMonitoring(interval time.Duration) {
+	endpoints := []string{
 		"https://paper-api.alpaca.markets/v2/account",
 		"https://paper-api.alpaca.markets/v2/positions",
 		"https://paper-api.alpaca.markets/v2/orders",
@@ -79,4 +79,16 @@ func (c *Client) startMonitoring(interval time.Duration) {
 
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			fmt.Println("\n--- Monitoring Cycle Started ---")
+			for _, endpoint := range endpoints {
+				c.MakeRequest(endpoint)
+				time.Sleep(1 * time.Second)
+			}
+			fmt.Println("--- Monitoring Cycle Complete ---\n")
+		}
+	}
 }
