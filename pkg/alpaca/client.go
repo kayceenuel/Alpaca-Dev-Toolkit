@@ -1,8 +1,10 @@
 package alpaca
 
 import (
+	"alpaca-dev-toolkit/pkg/metrics"
+	"fmt"
+	"io"
 	"net/http"
-	"runtime/metrics"
 	"time"
 )
 
@@ -23,12 +25,46 @@ func NewClient(apiKey, apiSecret string, metricsCollector *metrics.Collector) *C
 }
 
 func (c *Client) MakeRequest(endpoint string) error {
-	req err := http.NewRequest("GET", endpoint, nil)
+	req, err := http.NewRequest("GET", endpoint, nil)
 	if err != nil {
 		c.Metrics.RecordError(endpoint, "request_creation_error")
 		return err
 	}
 
-	req.Header.Set("APCA-API-KEY-ID", c.APIKey)
+	req.Header.Set("APCA-API-KEY-ID", c.APIKEY)
 	req.Header.Set("APCA-API-SECRET-KEY", c.APISecret)
+
+	start := time.Now()
+	resp, err := c.HTTPClient.Do(req)
+	duration := time.Since(start).Seconds()
+
+	if err != nil {
+		c.Metrics.RecordError(endpoint, "network_error")
+		return err
+	}
+	defer resp.Body.Close()
+
+	statusCode := fmt.Sprintf("%d", resp.StatusCode)
+	c.Metrics.RecordRequest(endpoint, statusCode, duration)
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		c.Metrics.RecordError(endpoint, "body_read_error")
+		return err
+	}
+
+	if resp.StatusCode >= 400 {
+		c.Metrics.RecordError(endpoint, "http_error")
+	}
+
+	fmt.Printf("Response time: %.0fms, Status: %d, Endpoint: %s\n",
+		duration*1000, resp.StatusCode, endpoint)
+
+	if resp.StatusCode == 200 {
+		fmt.Printf("Success\n")
+	} else {
+		fmt.Printf(" Error body: %s\n", string(body))
+
+	}
+	return nil
 }
