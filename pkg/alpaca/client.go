@@ -88,7 +88,7 @@ func (c *Client) StartMonitoring(interval time.Duration) {
 				c.MakeRequest(endpoint)
 				time.Sleep(1 * time.Second)
 			}
-			fmt.Println("--- Monitoring Cycle Complete ---\n")
+			fmt.Println("Monitoring Cycle Complete")
 		}
 	}
 }
