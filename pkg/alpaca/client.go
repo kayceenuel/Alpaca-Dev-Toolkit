@@ -56,11 +56,17 @@ func (c *Client) MakeRequest(endpoint string) error {
 			remaining = 0
 		}
 
-		c.Metrics.RateLimitRemaining.WithLabelValues(endpoint).Set(float64(remaining))
-
 		if remaining < 20 {
-			c.Metrics.RateLimitWarnings.WithLabelValues(endpoint).Inc()
+			c.Metrics.RateLimitRemaining.WithLabelValues(endpoint).Inc()
 			log.Printf(" Low rate limit on %s: %d calls remaining", endpoint, remaining)
+		}
+	}
+
+	limitStr := resp.Header.Get("X-RateLimit-Limit")
+	if limitStr != "" { // check if header exists
+		limit, err := strconv.Atoi(limitStr)
+		if err != nil {
+			c.Metrics.RateLimitLimit.WithLabelValues(endpoint).Set(float64(limit))
 		}
 	}
 
