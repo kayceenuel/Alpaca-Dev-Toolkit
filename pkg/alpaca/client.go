@@ -48,24 +48,26 @@ func (c *Client) MakeRequest(endpoint string) error {
 	defer resp.Body.Close()
 
 	remainingStr := resp.Header.Get("X-RateLimit-Remaining")
-
-	if remainingStr != "" { // Check if header exists
+	if remainingStr != "" {
 		remaining, err := strconv.Atoi(remainingStr)
 		if err != nil {
 			c.Metrics.RecordError(endpoint, "rate_limit_parse_error")
 			remaining = 0
 		}
 
+		// Always set the remaining value
+		c.Metrics.RateLimitRemaining.WithLabelValues(endpoint).Set(float64(remaining))
+
+		// Only log warning when low
 		if remaining < 20 {
-			c.Metrics.RateLimitRemaining.WithLabelValues(endpoint).Inc()
 			log.Printf(" Low rate limit on %s: %d calls remaining", endpoint, remaining)
 		}
 	}
 
 	limitStr := resp.Header.Get("X-RateLimit-Limit")
-	if limitStr != "" { // check if header exists
+	if limitStr != "" {
 		limit, err := strconv.Atoi(limitStr)
-		if err != nil {
+		if err == nil { // Set when NO error
 			c.Metrics.RateLimitLimit.WithLabelValues(endpoint).Set(float64(limit))
 		}
 	}
