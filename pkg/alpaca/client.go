@@ -4,7 +4,9 @@ import (
 	"alpaca-dev-toolkit/pkg/metrics"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -44,6 +46,23 @@ func (c *Client) MakeRequest(endpoint string) error {
 	}
 
 	defer resp.Body.Close()
+
+	remainingStr := resp.Header.Get("X-RateLimit-Remaining")
+
+	if remainingStr != "" { // Check if header exists
+		remaining, err := strconv.Atoi(remainingStr)
+		if err != nil {
+			c.Metrics.RecordError(endpoint, "rate_limit_parse_error")
+			remaining = 0
+		}
+
+		c.Metrics.RateLimitRemaining.WithLabelValues(endpoint).Set(float64(remaining))
+
+		if remaining < 20 {
+			c.Metrics.RateLimitWarnings.WithLabelValues(endpoint).Inc()
+			log.Printf(" Low rate limit on %s: %d calls remaining", endpoint, remaining)
+		}
+	}
 
 	statusCode := fmt.Sprintf("%d", resp.StatusCode)
 	c.Metrics.RecordRequest(endpoint, statusCode, duration)
