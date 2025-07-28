@@ -9,7 +9,7 @@ type Collector struct {
 	RequestsTotal      *prometheus.CounterVec
 	ErrorsTotal        *prometheus.CounterVec
 	RateLimitRemaining *prometheus.GaugeVec
-	RateLimitWarnings  *prometheus.CounterVec
+	RateLimitLimit     *prometheus.GaugeVec
 }
 
 func NewCollector() *Collector {
@@ -47,10 +47,10 @@ func NewCollector() *Collector {
 			[]string{"endpoint"},
 		),
 
-		RateLimitWarnings: prometheus.NewCounterVec(
-			prometheus.CounterOpts{
-				Name: "alpaca_rate_limit_warning_total",
-				Help: "Times we warned that rate limit was low",
+		RateLimitLimit: prometheus.NewGaugeVec(
+			prometheus.GaugeOpts{
+				Name: "alpaca_rate_limit_limit",
+				Help: "The rate limit celing for Alpaca API calls",
 			},
 			[]string{"endpoint"},
 		),
@@ -61,7 +61,7 @@ func NewCollector() *Collector {
 	prometheus.MustRegister(collector.RequestsTotal)
 	prometheus.MustRegister(collector.ErrorsTotal)
 	prometheus.MustRegister(collector.RateLimitRemaining)
-	prometheus.MustRegister(collector.RateLimitWarnings)
+	prometheus.MustRegister(collector.RateLimitLimit)
 
 	return collector
 }
