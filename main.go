@@ -38,6 +38,12 @@ func main() {
 	// serve Prometheus metrics
 	http.Handle("/metrics", promhttp.Handler())
 
+	//health check endpoint
+	http.HandleFunc("health", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("ok"))
+	})
+
 	log.Println("Alpaca Performance Monitor started!")
 	log.Println("Metrics available at: http://localhost:2112/metrics")
 	log.Fatal(http.ListenAndServe(":2112", nil))
