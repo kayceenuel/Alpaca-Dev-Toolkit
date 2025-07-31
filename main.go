@@ -39,7 +39,7 @@ func main() {
 	http.Handle("/metrics", promhttp.Handler())
 
 	//health check endpoint
-	http.HandleFunc("health", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("ok"))
 	})
