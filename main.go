@@ -16,6 +16,7 @@ import (
 func main() {
 	//create a logger with JSON handler
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
+	slog.SetDefault(logger)
 
 	// load env file
 	err := godotenv.Load()
