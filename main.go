@@ -14,10 +14,9 @@ import (
 )
 
 func main() {
-	//create a logger with JSON handler 
-	logger := slog.New(slog.NewJSONHandler(os.stdout, &slog.HanlderOptions{
-		level: slog.LevelInfo
-	}))
+	//create a logger with JSON handler
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
+
 	// load env file
 	err := godotenv.Load()
 	if err != nil {
