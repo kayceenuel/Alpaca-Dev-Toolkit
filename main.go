@@ -4,6 +4,7 @@ import (
 	"alpaca-dev-toolkit/pkg/alpaca"
 	"alpaca-dev-toolkit/pkg/metrics"
 	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"time"
@@ -13,6 +14,10 @@ import (
 )
 
 func main() {
+	//create a logger with JSON handler 
+	logger := slog.New(slog.NewJSONHandler(os.stdout, &slog.HanlderOptions{
+		level: slog.LevelInfo
+	}))
 	// load env file
 	err := godotenv.Load()
 	if err != nil {
