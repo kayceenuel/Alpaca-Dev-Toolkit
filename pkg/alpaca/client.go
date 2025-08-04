@@ -4,7 +4,7 @@ import (
 	"alpaca-dev-toolkit/pkg/metrics"
 	"fmt"
 	"io"
-	"log"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"time"
@@ -47,27 +47,30 @@ func (c *Client) MakeRequest(endpoint string) error {
 
 	defer resp.Body.Close()
 
+	var remaining int
+
 	remainingStr := resp.Header.Get("X-RateLimit-Remaining")
 	if remainingStr != "" {
-		remaining, err := strconv.Atoi(remainingStr)
+		var err error
+		remaining, err = strconv.Atoi(remainingStr)
 		if err != nil {
 			c.Metrics.RecordError(endpoint, "rate_limit_parse_error")
 			remaining = 0
 		}
 
-		// Always set the remaining value
 		c.Metrics.RateLimitRemaining.WithLabelValues(endpoint).Set(float64(remaining))
 
-		// Only log warning when low
 		if remaining < 20 {
-			log.Printf(" Low rate limit on %s: %d calls remaining", endpoint, remaining)
+			slog.Warn("Low rate limit detected",
+				"endpoint", endpoint,
+				"remaining", remaining)
 		}
 	}
 
 	limitStr := resp.Header.Get("X-RateLimit-Limit")
 	if limitStr != "" {
 		limit, err := strconv.Atoi(limitStr)
-		if err == nil { // Set when NO error
+		if err == nil {
 			c.Metrics.RateLimitLimit.WithLabelValues(endpoint).Set(float64(limit))
 		}
 	}
@@ -85,15 +88,24 @@ func (c *Client) MakeRequest(endpoint string) error {
 		c.Metrics.RecordError(endpoint, "http_error")
 	}
 
-	fmt.Printf("Response time: %.0fms, Status: %d, Endpoint: %s\n",
-		duration*1000, resp.StatusCode, endpoint)
+	// Fixed with slog calls
+	slog.Info("API request completed",
+		"endpoint", endpoint,
+		"duration_ms", duration*1000,
+		"status_code", resp.StatusCode,
+		"rate_limit_remaining", remaining)
 
 	if resp.StatusCode == 200 {
-		fmt.Printf("Success\n")
+		slog.Debug("Request succeeded",
+			"endpoint", endpoint,
+			"status_code", resp.StatusCode)
 	} else {
-		fmt.Printf(" Error body: %s\n", string(body))
-
+		slog.Error("Request failed",
+			"endpoint", endpoint,
+			"status_code", resp.StatusCode,
+			"response_body", string(body))
 	}
+
 	return nil
 }
 
@@ -105,18 +117,22 @@ func (c *Client) StartMonitoring(interval time.Duration) {
 		"https://paper-api.alpaca.markets/v2/assets",
 	}
 
+	slog.Info("Starting monitoring loop",
+		"interval", interval,
+		"endpoints", len(endpoints))
+
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 
 	for {
 		select {
 		case <-ticker.C:
-			fmt.Println("\n--- Monitoring Cycle Started ---")
+			slog.Info("Monitoring cycle started")
 			for _, endpoint := range endpoints {
 				c.MakeRequest(endpoint)
 				time.Sleep(1 * time.Second)
 			}
-			fmt.Println("Monitoring Cycle Complete")
+			slog.Info("Monitoring cycle completed")
 		}
 	}
 }
