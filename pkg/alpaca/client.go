@@ -88,7 +88,6 @@ func (c *Client) MakeRequest(endpoint string) error {
 		c.Metrics.RecordError(endpoint, "http_error")
 	}
 
-	// Fixed with slog calls
 	slog.Info("API request completed",
 		"endpoint", endpoint,
 		"duration_ms", duration*1000,
