@@ -16,3 +16,20 @@ COPY . .
 
 #Build the go binary 
 RUN go build -o myapp .
+
+# --- stage 2: Runtime --- 
+FROM alpine:latest
+
+#Install CA certificates for HTTPs requests
+RUN apk --no-cache and ca-certificates
+
+WORKDIR /root/ 
+
+#Copy the binary from builder stage 
+COPY --from=builder /app/myapp .
+
+#Expose the app port 
+EXPOSE 2112 
+
+#Run the app 
+CMD ["./app"]
