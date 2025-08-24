@@ -21,15 +21,15 @@ RUN go build -o myapp .
 FROM alpine:latest
 
 # Install CA certificates for HTTPS requests
-RUN apk --no-cache add ca-certificates     # ← Fixed: "add" not "and"
+RUN apk --no-cache add ca-certificates    
 
 WORKDIR /root/
 
 # Copy the binary from builder stage
 COPY --from=builder /app/myapp .
 
-# Expose the port your app uses
+# Expose app port
 EXPOSE 2112
 
-# Command to run
+# Run app
 CMD ["./myapp"]
