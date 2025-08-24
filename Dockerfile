@@ -1,35 +1,35 @@
-# --- stage 1: Build go app --- 
+# --- Stage 1: Build Go app ---
 FROM golang:1.23.4-alpine AS builder
 
-#Install git (needed for Go modules)
-RUN apk add --no-cache git 
+# Install git (needed for Go modules)
+RUN apk add --no-cache git
 
-#Set working directory 
-WORKDIR /app 
+# Set working directory
+WORKDIR /app
 
-# Copy go mod files and download dependencies first (for better caching) 
+# Copy go mod files and download dependencies first (for better caching)
 COPY go.mod go.sum ./
-RUN go.mod download 
+RUN go mod download
 
-# copy the rest of the code 
+# Copy the rest of the code
 COPY . .
 
-#Build the go binary 
+# Build the go binary
 RUN go build -o myapp .
 
-# --- stage 2: Runtime --- 
+# --- Stage 2: Runtime ---
 FROM alpine:latest
 
-#Install CA certificates for HTTPs requests
-RUN apk --no-cache and ca-certificates
+# Install CA certificates for HTTPS requests
+RUN apk --no-cache add ca-certificates     # ← Fixed: "add" not "and"
 
-WORKDIR /root/ 
+WORKDIR /root/
 
-#Copy the binary from builder stage 
+# Copy the binary from builder stage
 COPY --from=builder /app/myapp .
 
-#Expose the app port 
-EXPOSE 2112 
+# Expose the port your app uses
+EXPOSE 2112
 
-#Run the app 
-CMD ["./app"]
+# Command to run
+CMD ["./myapp"]
